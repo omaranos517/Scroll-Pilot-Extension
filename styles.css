@@ -1,0 +1,26 @@
+#scrollTopBtn, #scrollBottomBtn {
+    position: fixed;
+    right: 20px;
+    padding: 10px 15px;
+    font-size: 14px;
+    border: none;
+    background-color: #1e90ff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 9999;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+#scrollTopBtn:hover, #scrollBottomBtn:hover {
+    opacity: 1;
+}
+
+#scrollTopBtn {
+    bottom: 70px;
+}
+
+#scrollBottomBtn {
+    bottom: 20px;
+}

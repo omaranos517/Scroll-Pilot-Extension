@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Scroll Buttons",
+  "version": "1.0",
+  "description": "Adds Scroll to Top and Bottom buttons to every page.",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ]
+}
