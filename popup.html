@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Buttons Settings</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            width: 320px;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e1e8ed;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            color: #4a5568;
+            font-weight: 600;
+        }
+        
+        .header p {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+        
+        .settings-group {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .settings-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .settings-title svg {
+            width: 18px;
+            height: 18px;
+            color: #667eea;
+        }
+        
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .toggle-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #4a5568;
+        }
+        
+        .toggle-label svg {
+            width: 16px;
+            height: 16px;
+            color: #718096;
+        }
+        
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e0;
+            transition: .3s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+        
+        /* Number input */
+        .number-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .number-input input {
+            width: 80px;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: center;
+            background: #f8fafc;
+        }
+        
+        .number-input input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+        }
+        
+        .number-input span {
+            font-size: 13px;
+            color: #718096;
+        }
+        
+        /* Scroll type options */
+        .scroll-type {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .scroll-option {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #4a5568;
+            transition: all 0.2s;
+        }
+        
+        .scroll-option:hover {
+            border-color: #cbd5e0;
+            background: #f8fafc;
+        }
+        
+        .scroll-option.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        /* Save button */
+        .save-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .save-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .save-button:active {
+            transform: translateY(0);
+        }
+        
+        /* Status message */
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+        }
+        
+        .status.success {
+            background: #c6f6d5;
+            color: #22543d;
+            display: block;
+        }
+        
+        .status.error {
+            background: #fed7d7;
+            color: #742a2a;
+            display: block;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e1e8ed;
+            font-size: 11px;
+            color: #a0aec0;
+        }
+        
+        .shortcuts {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+        
+        .shortcut-item {
+            padding: 4px 8px;
+            background: #edf2f7;
+            border-radius: 4px;
+            color: #4a5568;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Scroll Buttons Settings</h1>
+        <p>Customize your scroll experience</p>
+    </div>
+    
+    <div class="settings-group">
+        <div class="settings-title">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 15v3m0 3v-3m0 0v-3m0 3h3m-3 0H9m12-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Button Visibility
+        </div>
+        
+        <div class="toggle-row">
+            <div class="toggle-label">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                </svg>
+                Show Top Button
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="showTopButton" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        
+        <div class="toggle-row">
+            <div class="toggle-label">
+                <svg xmlns="http://www.w3.org2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                </svg>
+                Show Bottom Button
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="showBottomButton" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        
+        <div class="toggle-row">
+            <div class="toggle-label">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 8v8m-4-4h8"/>
+                </svg>
+                Show Progress Ring
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="showProgressRing" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        
+        <div class="toggle-row">
+            <div class="toggle-label">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 16h-1v-4h1m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Show Tooltips
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="showTooltips" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+    
+    <div class="settings-group">
+        <div class="settings-title">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            Scroll Behavior
+        </div>
+        
+        <div class="toggle-row">
+            <div class="toggle-label">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                </svg>
+                Custom Scroll Position
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="customScrollEnabled">
+                <span class="slider"></span>
+            </label>
+        </div>
+        
+        <div id="customScrollSettings" style="display: none;">
+            <div class="number-input">
+                <input type="number" id="topScrollPosition" min="0" max="10000" value="0" placeholder="0">
+                <span>px from top (Top Button)</span>
+            </div>
+            
+            <div class="number-input" style="margin-top: 15px;">
+                <input type="number" id="bottomScrollPosition" min="0" max="10000" value="100" placeholder="100">
+                <span>px from bottom (Bottom Button)</span>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <div style="font-size: 13px; color: #4a5568; margin-bottom: 8px;">Scroll Type:</div>
+                <div class="scroll-type">
+                    <div class="scroll-option active" data-type="percentage">Percentage</div>
+                    <div class="scroll-option" data-type="pixels">Pixels</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="toggle-row">
+            <div class="toggle-label">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                Smooth Scrolling
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="smoothScrolling" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+    
+    <div class="settings-group">
+        <div class="settings-title">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+            Keyboard Shortcuts
+        </div>
+        
+        <div class="toggle-row">
+            <div class="toggle-label">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+                </svg>
+                Enable Shortcuts
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="enableShortcuts" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+    
+    <button class="save-button" id="saveSettings">Save Settings</button>
+    
+    <div class="status" id="statusMessage"></div>
+    
+    <div class="footer">
+        <div>Changes apply to all pages</div>
+        <div class="shortcuts">
+            <div class="shortcut-item">Ctrl+Alt+↑/↓</div>
+            <div class="shortcut-item">Ctrl+Home/End</div>
+        </div>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>

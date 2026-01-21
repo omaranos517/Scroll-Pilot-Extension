@@ -1,13 +1,22 @@
 {
   "manifest_version": 3,
   "name": "Modern Scroll Buttons",
-  "version": "1.0",
-  "description": "scroll to top/bottom buttons in every page",
+  "version": "1.1",
+  "description": "Modern scroll to top/bottom buttons with customization",
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
       "css": ["styles.css"]
     }
-  ]
+  ],
+  "action": {
+    "default_popup": "popup.html"
+    
+  },
+  "permissions": ["storage"],
+  
+  "background": {
+    "service_worker": "background.js"
+  }
 }

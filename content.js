@@ -1,6 +1,7 @@
 // Modern Scroll Buttons Extension
 // Handles both window scrolling and scrollable divs
 
+  
 class ModernScrollButtons {
   constructor() {
     this.scrollTopBtn = null;
@@ -11,10 +12,26 @@ class ModernScrollButtons {
     this.lastScrollHeight = 0;
     this.animationFrameId = null;
     
+    // Default settings
+    this.settings = {
+      showTopButton: true,
+      showBottomButton: true,
+      showProgressRing: true,
+      showTooltips: true,
+      customScrollEnabled: false,
+      topScrollPosition: 0,
+      bottomScrollPosition: 100,
+      scrollType: 'percentage',
+      smoothScrolling: true,
+      enableShortcuts: true
+    };
+    
     this.init();
   }
 
-  init() {
+    async init() {
+    // Load settings first
+    await this.loadSettings();
     this.findScrollContainer();
     this.createButtons();
     this.setupEventListeners();
@@ -22,6 +39,88 @@ class ModernScrollButtons {
     this.updateButtons();
   }
 
+  async loadSettings() {
+    try {
+      // Try Chrome storage API first
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+        const savedSettings = await chrome.storage.sync.get(this.settings);
+        this.settings = { ...this.settings, ...savedSettings };
+      } else {
+        // Fallback to localStorage
+        const savedSettings = localStorage.getItem('modernScrollButtonsSettings');
+        if (savedSettings) {
+          this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
+        }
+      }
+    } catch (error) {
+      console.error('ModernScrollButtons: Error loading settings:', error);
+      
+      // Fallback to localStorage
+      try {
+        const savedSettings = localStorage.getItem('modernScrollButtonsSettings');
+        if (savedSettings) {
+          this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
+        }
+      } catch (e) {
+        console.error('ModernScrollButtons: Error loading from localStorage:', e);
+      }
+    }
+  
+  }
+
+  updateSettings(newSettings) {
+    this.settings = { ...this.settings, ...newSettings };
+    
+    // Save to storage
+    this.saveSettings();
+    
+    // Apply immediately
+    this.applySettings();
+  }
+
+  async saveSettings() {
+    try {
+      // Try Chrome storage first
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+        await chrome.storage.sync.set(this.settings);
+      } else {
+        // Fallback to localStorage
+        localStorage.setItem('modernScrollButtonsSettings', JSON.stringify(this.settings));
+      }
+    } catch (error) {
+      console.error('ModernScrollButtons: Error saving settings:', error);
+      
+      // Fallback to localStorage
+      try {
+        localStorage.setItem('modernScrollButtonsSettings', JSON.stringify(this.settings));
+      } catch (e) {
+        console.error('ModernScrollButtons: Error saving to localStorage:', e);
+      }
+    }
+  }
+  
+  applySettings() {
+    if (!this.scrollTopBtn || !this.scrollBottomBtn) return;
+    
+    // Update button visibility
+    this.scrollTopBtn.style.display = this.settings.showTopButton ? 'flex' : 'none';
+    this.scrollBottomBtn.style.display = this.settings.showBottomButton ? 'flex' : 'none';
+    
+    // Update progress ring visibility
+    const progressRings = document.querySelectorAll('.scroll-progress-ring');
+    progressRings.forEach(ring => {
+      ring.style.display = this.settings.showProgressRing ? 'block' : 'none';
+    });
+    
+    // Update tooltip visibility
+    const tooltips = document.querySelectorAll('.scroll-button-tooltip');
+    tooltips.forEach(tooltip => {
+      tooltip.style.display = this.settings.showTooltips ? 'block' : 'none';
+    });
+    
+    this.updateButtons();
+  }
+  
   // Find the main scroll container (window or div)
   findScrollContainer() {
     console.log('ModernScrollButtons: Finding scroll container...');
@@ -204,17 +303,31 @@ class ModernScrollButtons {
     }
   }
 
-  scrollToTop() {
+    scrollToTop() {
     try {
+      let target = 0;
+      
+      if (this.settings.customScrollEnabled) {
+        if (this.settings.scrollType === 'percentage') {
+          const { scrollHeight, clientHeight } = this.getScrollInfo();
+          const maxScroll = Math.max(scrollHeight - clientHeight, 1);
+          target = (this.settings.topScrollPosition / 100) * maxScroll;
+        } else {
+          target = this.settings.topScrollPosition;
+        }
+      }
+      
+      const behavior = this.settings.smoothScrolling ? 'smooth' : 'auto';
+      
       if (this.isWindowScrolling) {
         window.scrollTo({
-          top: 0,
-          behavior: 'smooth'
+          top: target,
+          behavior: behavior
         });
       } else if (this.scrollContainer) {
         this.scrollContainer.scrollTo({
-          top: 0,
-          behavior: 'smooth'
+          top: target,
+          behavior: behavior
         });
       }
     } catch (e) {
@@ -225,17 +338,29 @@ class ModernScrollButtons {
   scrollToBottom() {
     try {
       const { scrollHeight, clientHeight } = this.getScrollInfo();
-      const target = Math.max(0, scrollHeight - clientHeight);
+      let target = scrollHeight - clientHeight;
+      
+      if (this.settings.customScrollEnabled) {
+        if (this.settings.scrollType === 'percentage') {
+          const maxScroll = Math.max(scrollHeight - clientHeight, 1);
+          const percentagePosition = (this.settings.bottomScrollPosition / 100) * maxScroll;
+          target = scrollHeight - clientHeight - percentagePosition;
+        } else {
+          target = Math.max(0, scrollHeight - this.settings.bottomScrollPosition);
+        }
+      }
+      
+      const behavior = this.settings.smoothScrolling ? 'smooth' : 'auto';
       
       if (this.isWindowScrolling) {
         window.scrollTo({
           top: target,
-          behavior: 'smooth'
+          behavior: behavior
         });
       } else if (this.scrollContainer) {
         this.scrollContainer.scrollTo({
           top: target,
-          behavior: 'smooth'
+          behavior: behavior
         });
       }
     } catch (e) {
@@ -358,7 +483,10 @@ class ModernScrollButtons {
     }
   }
 
-  handleKeyDown(e) {
+    handleKeyDown(e) {
+    // Check if shortcuts are enabled
+    if (!this.settings.enableShortcuts) return;
+    
     // Only handle if no input/textarea is focused
     if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(e.target.tagName)) {
       return;
@@ -551,3 +679,11 @@ document.addEventListener('visibilitychange', () => {
 if (typeof window !== 'undefined') {
   window.ModernScrollButtons = ModernScrollButtons;
 }
+
+// Add message listener at the end of content.js
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'updateSettings' && scrollExtension) {
+    scrollExtension.updateSettings(request.settings);
+  }
+  sendResponse({ success: true });
+});

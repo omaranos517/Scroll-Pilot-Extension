@@ -145,3 +145,16 @@ body.has-fixed-bottom #modernScrollBottomBtn {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 }
+
+/* Settings control classes */
+.hidden {
+  display: none !important;
+}
+
+.no-progress-ring .scroll-progress-ring {
+  display: none !important;
+}
+
+.no-tooltip .scroll-button-tooltip {
+  display: none !important;
+}
