@@ -1,38 +1,67 @@
-# Scroll Buttons Extension (in development)
+# 🚀 Scroll Buttons Extension (in development)
 
-A simple **Chrome extension** that adds **Scroll to Top** and **Scroll to Bottom** buttons on every page you visit.  
-
----
-
-## Features
-
-- Adds a **"⬆ Top"** button to scroll smoothly to the top of the page.
-- Adds a **"⬇ Bottom"** button to scroll smoothly to the bottom of the page.
-- Buttons appear on **every website**.
-- Lightweight and easy to use.
+A lightweight **Chrome extension** that adds floating buttons to quickly  
+**scroll to the top or bottom of any webpage**.
 
 ---
 
-## Usage
+## ✨ Features
 
-- ⬆ Top: Click to scroll to the top of the page smoothly.
-
-- ⬇ Bottom: Click to scroll to the bottom of the page smoothly.
+- ⬆️ Scroll smoothly to the **top** of the page  
+- ⬇️ Scroll smoothly to the **bottom** of the page  
+- Works automatically on **all websites**  
+- No configuration needed  
+- Fast and lightweight  
 
 ---
 
-## Installation (for Developers)
+## 🧭 Usage
 
-1. Clone or download this repository:
+- **⬆ Top** → Scroll to the top of the page  
+- **⬇ Bottom** → Scroll to the bottom of the page  
 
-```bash
-git clone https://github.com/yourusername/scroll-buttons-extension.git
-```
+Buttons appear on the bottom-right corner of the page.
 
+---
+
+## 🚀 Download Extension
+
+[![Download](https://img.shields.io/badge/Download-ZIP-blue)](
+https://github.com/omaranos517/scroll-buttons-extension/archive/refs/heads/main.zip
+)
+
+---
+
+## 📦 Installation
+
+After downloading:
+
+1. Extract the ZIP file  
 2. Open Chrome and go to: chrome://extensions/
 
-3. Enable Developer mode (top-right corner).
+3. Enable **Developer mode** (top-right corner)  
+4. Click **Load unpacked**  
+5. Select the extracted extension folder  
 
-4. Click Load unpacked and select the folder scroll-buttons-extension.
+✅ The scroll buttons will appear automatically on every website.
 
-5. Open any website — you’ll see the scroll buttons on the bottom-right corner.
+---
+
+## 🛠️ Built With
+
+- JavaScript
+- CSS
+- Chrome Extensions API (Manifest V3)
+
+---
+
+## 📌 Status
+
+🧪 **In development**  
+More features may be added in future updates.
+
+---
+
+## 📄 License
+
+MIT License
