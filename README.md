@@ -7,6 +7,8 @@
 A lightweight **Chrome extension** that adds floating buttons to quickly  
 **scroll to the top or bottom of any webpage**.
 
+**Important: This extension is still in development, and not ready to use.**
+
 ---
 
 ## ✨ Features

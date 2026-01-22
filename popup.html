@@ -1,3 +1,4 @@
+<!-- popup.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -166,6 +167,58 @@
             color: #718096;
         }
         
+        /* Position options */
+        .position-options {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .position-option {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #4a5568;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .position-option:hover {
+            border-color: #cbd5e0;
+            background: #f8fafc;
+        }
+        
+        .position-option.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .preview-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #cbd5e0;
+            position: relative;
+        }
+        
+        .position-option.active .preview-dot {
+            background: #667eea;
+        }
+        
+        .position-preview {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
         /* Scroll type options */
         .scroll-type {
             display: flex;
@@ -335,6 +388,57 @@
                 <span class="slider"></span>
             </label>
         </div>
+    </div>
+
+    <div class="settings-group">
+    <div class="settings-title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Button Position
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        <div style="font-size: 13px; color: #4a5568; margin-bottom: 8px;">Position:</div>
+        <div class="position-options">
+        <div class="position-option active" data-position="middle-right">
+            <div class="position-preview">
+            <div class="preview-dot top"></div>
+            <div class="preview-dot bottom"></div>
+            </div>
+            <span>Middle Right</span>
+        </div>
+        <div class="position-option" data-position="top-right">
+            <div class="preview-dot top"></div>
+            <span>Top Right</span>
+        </div>
+        <div class="position-option" data-position="bottom-right">
+            <div class="preview-dot bottom"></div>
+            <span>Bottom Right</span>
+        </div>
+        </div>
+    </div>
+    
+    <div class="toggle-row">
+        <div class="toggle-label">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Auto-Hide Buttons
+        </div>
+        <label class="switch">
+        <input type="checkbox" id="autoHide" checked>
+        <span class="slider"></span>
+        </label>
+    </div>
+    
+    <div id="autoHideSettings" style="display: block; margin-top: 10px;">
+        <div class="number-input">
+        <input type="number" id="hideDelay" min="1" max="10" value="3" placeholder="3">
+        <span>seconds delay after scrolling</span>
+        </div>
+    </div>
     </div>
     
     <div class="settings-group">

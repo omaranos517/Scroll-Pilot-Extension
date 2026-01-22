@@ -1,3 +1,4 @@
+// content.js
 // Modern Scroll Buttons Extension
 // Handles both window scrolling and scrollable divs
 
@@ -10,6 +11,17 @@ class ModernScrollButtons {
     this.observer = null;
     this.lastScrollHeight = 0;
     this.animationFrameId = null;
+    this.hideTimeout = null;
+    this.lastScrollTime = 0;
+    this.isScrolling = false;
+    this.scrollTimeout = null;
+    this.scrollSpeed = 0;
+    this.scrollInterval = null;
+    this.clickTimer = null;
+    this.clickCount = 0;
+    this.isAutoScrolling = false;
+    this.lastClickTime = 0;  // أضف هذا
+    this.lastClickDirection = null;  // إضافة لتتبع اتجاه النقر
     
     // Default settings
     this.settings = {
@@ -22,82 +34,51 @@ class ModernScrollButtons {
       bottomScrollPosition: 100,
       scrollType: 'percentage',
       smoothScrolling: true,
-      enableShortcuts: true
+      enableShortcuts: true,
+      position: 'middle-right',
+      autoHide: true,
+      hideDelay: 3
     };
     
     this.init();
   }
 
-    async init() {
-    // Load settings first
+  async init() {
     await this.loadSettings();
     this.findScrollContainer();
     this.createButtons();
     this.setupEventListeners();
     this.setupMutationObserver();
+    this.updatePosition();
     this.updateButtons();
   }
 
   async loadSettings() {
     try {
-      // Try Chrome storage API first
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-        const savedSettings = await chrome.storage.sync.get(this.settings);
-        this.settings = { ...this.settings, ...savedSettings };
-      } else {
-        // Fallback to localStorage
-        const savedSettings = localStorage.getItem('modernScrollButtonsSettings');
-        if (savedSettings) {
-          this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
-        }
+      const savedSettings = localStorage.getItem('modernScrollButtonsSettings');
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        this.settings = { ...this.settings, ...parsed };
       }
     } catch (error) {
       console.error('ModernScrollButtons: Error loading settings:', error);
-      
-      // Fallback to localStorage
-      try {
-        const savedSettings = localStorage.getItem('modernScrollButtonsSettings');
-        if (savedSettings) {
-          this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
-        }
-      } catch (e) {
-        console.error('ModernScrollButtons: Error loading from localStorage:', e);
-      }
     }
-  
+  }
+
+  saveSettings() {
+    try {
+      localStorage.setItem('modernScrollButtonsSettings', JSON.stringify(this.settings));
+    } catch (error) {
+      console.error('ModernScrollButtons: Error saving settings:', error);
+    }
   }
 
   updateSettings(newSettings) {
     this.settings = { ...this.settings, ...newSettings };
-    
-    // Save to storage
     this.saveSettings();
-    
-    // Apply immediately
     this.applySettings();
   }
 
-  async saveSettings() {
-    try {
-      // Try Chrome storage first
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-        await chrome.storage.sync.set(this.settings);
-      } else {
-        // Fallback to localStorage
-        localStorage.setItem('modernScrollButtonsSettings', JSON.stringify(this.settings));
-      }
-    } catch (error) {
-      console.error('ModernScrollButtons: Error saving settings:', error);
-      
-      // Fallback to localStorage
-      try {
-        localStorage.setItem('modernScrollButtonsSettings', JSON.stringify(this.settings));
-      } catch (e) {
-        console.error('ModernScrollButtons: Error saving to localStorage:', e);
-      }
-    }
-  }
-  
   applySettings() {
     if (!this.scrollTopBtn || !this.scrollBottomBtn) return;
     
@@ -117,7 +98,203 @@ class ModernScrollButtons {
       tooltip.style.display = this.settings.showTooltips ? 'block' : 'none';
     });
     
+    // Update position
+    this.updatePosition();
+    
     this.updateButtons();
+  }
+
+  updatePosition() {
+    if (!this.scrollTopBtn || !this.scrollBottomBtn) return;
+    
+    const topBtn = this.scrollTopBtn;
+    const bottomBtn = this.scrollBottomBtn;
+    
+    // Reset all positions
+    topBtn.style.top = '';
+    topBtn.style.bottom = '';
+    topBtn.style.right = '';
+    topBtn.style.left = '';
+    topBtn.style.transform = '';
+    
+    bottomBtn.style.top = '';
+    bottomBtn.style.bottom = '';
+    bottomBtn.style.right = '';
+    bottomBtn.style.left = '';
+    bottomBtn.style.transform = '';
+    
+    const isShowing = topBtn.classList.contains('show') || bottomBtn.classList.contains('show');
+    const scale = isShowing ? 'scale(1)' : 'scale(0.8)';
+    const opacity = isShowing ? '0.9' : '0';
+    
+    switch(this.settings.position) {
+      case 'middle-right':
+        topBtn.style.top = '50%';
+        topBtn.style.right = '20px';
+        topBtn.style.transform = `translateY(-120px) ${scale}`;
+        
+        bottomBtn.style.top = '50%';
+        bottomBtn.style.right = '20px';
+        bottomBtn.style.transform = `translateY(-50px) ${scale}`;
+        break;
+        
+      case 'top-right':
+        topBtn.style.top = '80px';
+        topBtn.style.right = '20px';
+        topBtn.style.transform = scale;
+        
+        bottomBtn.style.top = '140px';
+        bottomBtn.style.right = '20px';
+        bottomBtn.style.transform = scale;
+        break;
+        
+      case 'bottom-right':
+        topBtn.style.bottom = '80px';
+        topBtn.style.right = '20px';
+        topBtn.style.transform = scale;
+        
+        bottomBtn.style.bottom = '20px';
+        bottomBtn.style.right = '20px';
+        bottomBtn.style.transform = scale;
+        break;
+        
+      default:
+        topBtn.style.top = '50%';
+        topBtn.style.right = '20px';
+        topBtn.style.transform = `translateY(-120px) ${scale}`;
+        
+        bottomBtn.style.top = '50%';
+        bottomBtn.style.right = '20px';
+        bottomBtn.style.transform = `translateY(-50px) ${scale}`;
+    }
+    
+    // Apply opacity for smooth transitions
+    topBtn.style.opacity = opacity;
+    bottomBtn.style.opacity = opacity;
+  }
+
+  // Auto-hide functionality
+  handleScroll = () => {
+    this.lastScrollTime = Date.now();
+    
+    if (!this.isScrolling) {
+      this.isScrolling = true;
+      this.showButtons();
+    }
+    
+    // Clear existing timeout
+    if (this.scrollTimeout) {
+      clearTimeout(this.scrollTimeout);
+    }
+    
+    // Set new timeout to detect when scrolling stops
+    this.scrollTimeout = setTimeout(() => {
+      this.isScrolling = false;
+      if (this.settings.autoHide) {
+        this.startHideTimer();
+      }
+    }, 150);
+    
+    this.updateButtons();
+  }
+
+  showButtons() {
+    if (this.scrollTopBtn) {
+      this.scrollTopBtn.classList.add('show');
+    }
+    if (this.scrollBottomBtn) {
+      this.scrollBottomBtn.classList.add('show');
+    }
+    this.updatePosition();
+    
+    // Clear any existing hide timeout
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
+      this.hideTimeout = null;
+    }
+  }
+
+  hideButtons() {
+    if (this.scrollTopBtn) {
+      this.scrollTopBtn.classList.remove('show');
+    }
+    if (this.scrollBottomBtn) {
+      this.scrollBottomBtn.classList.remove('show');
+    }
+    this.updatePosition();
+  }
+
+  startHideTimer() {
+    if (!this.settings.autoHide) return;
+    
+    // Clear existing timeout
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
+    }
+    
+    // Set new timeout
+    this.hideTimeout = setTimeout(() => {
+      const timeSinceLastScroll = Date.now() - this.lastScrollTime;
+      if (timeSinceLastScroll >= this.settings.hideDelay * 1000 && !this.isScrolling) {
+        this.hideButtons();
+      }
+    }, this.settings.hideDelay * 1000);
+  }
+
+   setupEventListeners() {
+    this.removeEventListeners();
+    
+    // Listen to scroll events with auto-hide functionality
+    if (this.isWindowScrolling) {
+      window.addEventListener('scroll', this.handleScroll, { passive: true });
+      window.addEventListener('resize', this.updateButtons, { passive: true });
+    } else if (this.scrollContainer) {
+      this.scrollContainer.addEventListener('scroll', this.handleScroll, { passive: true });
+      window.addEventListener('resize', this.updateButtons, { passive: true });
+    }
+
+    // Keyboard shortcuts
+    this.handleKeyDownBound = this.handleKeyDown.bind(this);
+    document.addEventListener('keydown', this.handleKeyDownBound);
+
+    // Mouse move to show buttons temporarily
+    document.addEventListener('mousemove', (e) => {
+      if (this.settings.autoHide && (e.clientX > window.innerWidth - 100 || e.clientY < 100)) {
+        this.showButtons();
+        this.startHideTimer();
+      }
+    });
+
+    // Keep buttons visible when hovering over them
+    if (this.scrollTopBtn) {
+      this.scrollTopBtn.addEventListener('mouseenter', () => {
+        this.showButtons();
+        if (this.hideTimeout) {
+          clearTimeout(this.hideTimeout);
+        }
+      });
+      
+      this.scrollTopBtn.addEventListener('mouseleave', () => {
+        if (this.settings.autoHide) {
+          this.startHideTimer();
+        }
+      });
+    }
+
+    if (this.scrollBottomBtn) {
+      this.scrollBottomBtn.addEventListener('mouseenter', () => {
+        this.showButtons();
+        if (this.hideTimeout) {
+          clearTimeout(this.hideTimeout);
+        }
+      });
+      
+      this.scrollBottomBtn.addEventListener('mouseleave', () => {
+        if (this.settings.autoHide) {
+          this.startHideTimer();
+        }
+      });
+    }
   }
   
   // Find the main scroll container (window or div)
@@ -269,8 +446,183 @@ class ModernScrollButtons {
       }
     };
 
-    this.scrollTopBtn.addEventListener('click', clickHandler(this.scrollToTop));
-    this.scrollBottomBtn.addEventListener('click', clickHandler(this.scrollToBottom));
+    this.scrollTopBtn.addEventListener('click', (e) => this.handleButtonClick('top', e));
+    this.scrollBottomBtn.addEventListener('click', (e) => this.handleButtonClick('bottom', e));
+  }
+
+    handleButtonClick(direction, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const now = Date.now();
+    const isDoubleClick = (now - this.lastClickTime < 300 && this.lastClickDirection === direction);
+    
+    if (isDoubleClick) {
+      // النقر المزدوج: التمرير إلى النهاية
+      console.log(`ModernScrollButtons: Double click detected - ${direction}`);
+      clearTimeout(this.clickTimer);
+      this.clickCount = 0;
+      this.stopAutoScroll();
+      
+      if (direction === 'top') {
+        this.scrollToTop();
+      } else {
+        this.scrollToBottom();
+      }
+      
+      this.lastClickTime = 0;
+      this.lastClickDirection = null;
+      return;
+    }
+    
+    // النقر المفرد
+    this.lastClickTime = now;
+    this.lastClickDirection = direction;
+    this.clickCount = 1;
+    
+    // تنظيف المؤقت السابق
+    clearTimeout(this.clickTimer);
+    
+    // بدء مؤقت للنقر المزدوج
+    this.clickTimer = setTimeout(() => {
+      // إذا لم يكن هناك نقر مزدوج خلال 300 مللي ثانية
+      if (this.clickCount === 1) {
+        // نقر مفرد: بدء التمرير المستمر
+        console.log(`ModernScrollButtons: Single click detected - ${direction}`);
+        this.startAutoScroll(direction);
+      }
+      this.clickCount = 0;
+    }, 300);
+  }
+
+  startAutoScroll(direction) {
+    // إيقاف أي تمرير مستمر سابق
+    this.stopAutoScroll();
+    
+    console.log(`ModernScrollButtons: Starting auto scroll ${direction}`);
+    
+    this.isAutoScrolling = true;
+    this.scrollSpeed = 15; // سرعة ابتدائية أبطأ
+    
+    // إضافة مؤشر للتمرير المستمر
+    this.indicateAutoScrolling(direction);
+    
+    // تحديد مدة كل إطار
+    const frameDuration = 1000 / 60; // 60fps
+    
+    const scrollStep = () => {
+      if (!this.isAutoScrolling) return;
+      
+      const { scrollTop, maxScroll } = this.getScrollInfo();
+      
+      // زيادة السرعة تدريجياً حتى الحد الأقصى
+      this.scrollSpeed = Math.min(this.scrollSpeed + 0.5, 100);
+      
+      let targetScroll;
+      
+      if (direction === 'top') {
+        targetScroll = Math.max(scrollTop - this.scrollSpeed, 0);
+        
+        // إذا وصلنا إلى الأعلى
+        if (targetScroll <= 0) {
+          this.stopAutoScroll();
+          console.log('ModernScrollButtons: Reached top, stopping');
+          return;
+        }
+      } else {
+        targetScroll = Math.min(scrollTop + this.scrollSpeed, maxScroll);
+        
+        // إذا وصلنا إلى الأسفل
+        if (targetScroll >= maxScroll) {
+          this.stopAutoScroll();
+          console.log('ModernScrollButtons: Reached bottom, stopping');
+          return;
+        }
+      }
+      
+      // تطبيق التمرير
+      if (this.isWindowScrolling) {
+        window.scrollTo({
+          top: targetScroll,
+          behavior: 'auto'
+        });
+      } else if (this.scrollContainer) {
+        this.scrollContainer.scrollTop = targetScroll;
+      }
+      
+      // الاستمرار في التمرير إذا لم نصل للنهاية
+      if ((direction === 'top' && targetScroll > 0) || 
+          (direction === 'bottom' && targetScroll < maxScroll)) {
+        requestAnimationFrame(scrollStep);
+      } else {
+        this.stopAutoScroll();
+      }
+    };
+    
+    // بدء التمرير
+    requestAnimationFrame(scrollStep);
+    
+    // إضافة مستمع لإيقاف التمرير بالنقر مرة أخرى
+    const stopOnClick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.stopAutoScroll();
+      this.scrollTopBtn.removeEventListener('click', stopOnClick);
+      this.scrollBottomBtn.removeEventListener('click', stopOnClick);
+    };
+    
+    this.scrollTopBtn.addEventListener('click', stopOnClick);
+    this.scrollBottomBtn.addEventListener('click', stopOnClick);
+  }
+
+  stopAutoScroll() {
+    if (!this.isAutoScrolling) return;
+    
+    console.log('ModernScrollButtons: Stopping auto scroll');
+    
+    this.isAutoScrolling = false;
+    this.scrollSpeed = 0;
+    
+    // إزالة مؤشر التمرير المستمر
+    this.removeAutoScrollIndication();
+    
+    // تنظيف المؤقتات
+    clearTimeout(this.clickTimer);
+    this.clickCount = 0;
+    this.lastClickTime = 0;
+    this.lastClickDirection = null;
+  }
+  
+  indicateAutoScrolling(direction) {
+    // إضافة مؤشر مرئي للتمرير المستمر
+    const btn = direction === 'top' ? this.scrollTopBtn : this.scrollBottomBtn;
+    btn.classList.add('auto-scrolling');
+    
+    // إضافة نص مؤقت
+    const tooltip = btn.querySelector('.scroll-button-tooltip');
+    if (tooltip) {
+      tooltip.textContent = 'Click again to stop';
+      tooltip.style.backgroundColor = '#e74c3c';
+    }
+    
+    // تغيير لون الزر
+    btn.style.background = 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)';
+  }
+
+  removeAutoScrollIndication() {
+    // إعادة الزر إلى حالته الأصلية
+    [this.scrollTopBtn, this.scrollBottomBtn].forEach(btn => {
+      if (btn) {
+        btn.classList.remove('auto-scrolling');
+        btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        
+        const tooltip = btn.querySelector('.scroll-button-tooltip');
+        if (tooltip) {
+          tooltip.textContent = btn.id.includes('Top') ? 'Scroll to Top' : 'Scroll to Bottom';
+          tooltip.style.backgroundColor = '';
+        }
+      }
+    });
   }
 
   getScrollInfo() {
@@ -378,9 +730,7 @@ class ModernScrollButtons {
       const { scrollTop, scrollHeight, clientHeight, maxScroll } = this.getScrollInfo();
       
       if (maxScroll <= 0) {
-        // No scrollable content
-        this.scrollTopBtn.classList.remove('show');
-        this.scrollBottomBtn.classList.remove('show');
+        this.hideButtons();
         return;
       }
       
@@ -388,7 +738,7 @@ class ModernScrollButtons {
       const scrollPercentage = Math.min(Math.max(scrollTop / maxScroll, 0), 1);
       
       // Update progress indicator
-      const circumference = 125.6; // 2 * π * r (r = 20)
+      const circumference = 125.6;
       const offset = circumference - (scrollPercentage * circumference);
       
       const progressFills = document.querySelectorAll('.scroll-progress-fill');
@@ -396,14 +746,14 @@ class ModernScrollButtons {
         circle.style.strokeDashoffset = offset;
       });
       
-      // Show/hide top button
+      // Show/hide top button based on scroll position
       if (scrollTop > 100) {
         this.scrollTopBtn.classList.add('show');
       } else {
         this.scrollTopBtn.classList.remove('show');
       }
       
-      // Show/hide bottom button
+      // Show/hide bottom button based on scroll position
       const distanceFromBottom = Math.max(0, scrollHeight - (scrollTop + clientHeight));
       if (distanceFromBottom > 50) {
         this.scrollBottomBtn.classList.add('show');
@@ -411,23 +761,14 @@ class ModernScrollButtons {
         this.scrollBottomBtn.classList.remove('show');
       }
       
-      // Update edge detection classes
-      if (scrollTop < 10) {
-        this.scrollTopBtn.classList.add('near-edge');
-      } else {
-        this.scrollTopBtn.classList.remove('near-edge');
-      }
-      
-      if (distanceFromBottom < 10) {
-        this.scrollBottomBtn.classList.add('near-edge');
-      } else {
-        this.scrollBottomBtn.classList.remove('near-edge');
-      }
+      // Update position for animation
+      this.updatePosition();
       
       this.lastScrollHeight = scrollHeight;
     });
   }
 
+  /*
   setupEventListeners() {
     // Remove existing listeners first
     this.removeEventListeners();
@@ -448,6 +789,7 @@ class ModernScrollButtons {
     // Update button positions
     // this.updateButtonPositions();
   }
+  */
 
   removeEventListeners() {
     window.removeEventListener('scroll', this.updateButtons);
@@ -601,6 +943,19 @@ class ModernScrollButtons {
       this.observer.disconnect();
     }
     
+    this.stopAutoScroll();
+    if (this.clickTimer) {
+      clearTimeout(this.clickTimer);
+    }
+    
+    // إزالة مستمعات النقر للتوقف عن التمرير
+    if (this.scrollTopBtn) {
+      this.scrollTopBtn.onclick = null;
+    }
+    if (this.scrollBottomBtn) {
+      this.scrollBottomBtn.onclick = null;
+    }
+
     clearTimeout(this.mutationTimeout);
   }
 }
