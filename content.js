@@ -741,33 +741,26 @@ class ModernScrollButtons {
         return;
       }
 
-      // **حساب النسبة بشكل مضبوط**
-      let scrollPercentage = scrollTop / maxScroll;
-      scrollPercentage = Math.min(Math.max(scrollPercentage, 0), 1); // تضمن 0–1
+      // حساب النسبة
+      const scrollPercentage = Math.min(Math.max(scrollTop / maxScroll, 0), 1);
 
-      // **لتحريك الحلقة بشكل صحيح**
-      const circumference = 2 * Math.PI * 22; // نفس نصف القطر الموجود في SVG
-      const offset = circumference * (1 - scrollPercentage); // 0 عند الأعلى، كامل عند الأسفل
+      // حساب المحيط بناءً على نصف القطر r=22
+      const radius = 22;
+      const circumference = 2 * Math.PI * radius;
+      const offset = circumference * (1 - scrollPercentage);
 
+      // يفضل أن يكون this.progressFills قد تم تعريفه مسبقاً خارج هذه الدالة
       const progressFills = document.querySelectorAll('.scroll-progress-fill');
       progressFills.forEach(circle => {
-        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDasharray = `${circumference}`;
         circle.style.strokeDashoffset = offset;
       });
 
-      // باقي الكود زي ما هو
-      if (scrollTop > 100) {
-        this.scrollTopBtn.classList.add('show');
-      } else {
-        this.scrollTopBtn.classList.remove('show');
-      }
+      // تبديل الحالات (Show/Hide)
+      this.scrollTopBtn.classList.toggle('show', scrollTop > 100);
       
       const distanceFromBottom = Math.max(0, scrollHeight - (scrollTop + clientHeight));
-      if (distanceFromBottom > 50) {
-        this.scrollBottomBtn.classList.add('show');
-      } else {
-        this.scrollBottomBtn.classList.remove('show');
-      }
+      this.scrollBottomBtn.classList.toggle('show', distanceFromBottom > 50);
 
       this.updatePosition();
       this.lastScrollHeight = scrollHeight;
