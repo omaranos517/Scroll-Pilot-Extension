@@ -26,7 +26,7 @@ A lightweight **Chrome extension** that adds floating buttons to quickly
 - **⬆ Top** → Scroll to the top of the page
 - **⬇ Bottom** → Scroll to the bottom of the page
 
-Buttons appear on the bottom-right corner of the page.
+Buttons appear on the right edge of the page. You can change their position from the pop-up settings.
 
 ---
 
