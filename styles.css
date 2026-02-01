@@ -1,6 +1,7 @@
 /* styles.css */
 /* Modern Scroll Buttons */
-#modernScrollTopBtn, #modernScrollBottomBtn {
+#modernScrollTopBtn,
+#modernScrollBottomBtn {
   position: fixed;
   right: 20px;
   width: 48px;
@@ -25,30 +26,33 @@
   outline: none; /* Firefox و متصفحات أخرى */
 }
 
-#modernScrollTopBtn.show, #modernScrollBottomBtn.show {
+#modernScrollTopBtn.show,
+#modernScrollBottomBtn.show {
   opacity: 0.9;
   transform: scale(1) translateY(0);
   pointer-events: auto;
 }
 
-#modernScrollTopBtn:hover, #modernScrollBottomBtn:hover {
+#modernScrollTopBtn:hover,
+#modernScrollBottomBtn:hover {
   opacity: 1;
   transform: scale(1.1);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-#modernScrollTopBtn:active, #modernScrollBottomBtn:active {
+#modernScrollTopBtn:active,
+#modernScrollBottomBtn:active {
   transform: scale(0.95);
   transition-duration: 0.1s;
 }
 
 #modernScrollTopBtn {
-  top: 50%;  /* تغيير من bottom إلى top */
+  top: 50%; /* تغيير من bottom إلى top */
   transform: translateY(-120px) scale(0.8) translateY(10px);
 }
 
 #modernScrollBottomBtn {
-  top: 50%;  /* تغيير من bottom إلى top */
+  top: 50%; /* تغيير من bottom إلى top */
   transform: translateY(-50px) scale(0.8) translateY(10px);
 }
 
@@ -60,7 +64,8 @@
   transform: translateY(-50px) scale(1) translateY(0);
 }
 
-#modernScrollTopBtn:hover, #modernScrollBottomBtn:hover {
+#modernScrollTopBtn:hover,
+#modernScrollBottomBtn:hover {
   transform: translateY(-120px) scale(1.1); /* تحديث للزر العلوي */
 }
 
@@ -112,7 +117,8 @@
   padding: 6px 10px;
   border-radius: 6px;
   font-size: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   white-space: nowrap;
   opacity: 0;
   transition: all 0.3s;
@@ -121,7 +127,7 @@
 }
 
 .scroll-button-tooltip:after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 100%;
@@ -151,37 +157,38 @@
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
-  #modernScrollTopBtn, #modernScrollBottomBtn {
+  #modernScrollTopBtn,
+  #modernScrollBottomBtn {
     width: 44px;
     height: 44px;
     font-size: 16px;
     right: 15px;
   }
-  
+
   #modernScrollTopBtn {
     transform: translateY(-110px) scale(0.8) translateY(10px);
   }
-  
+
   #modernScrollBottomBtn {
     transform: translateY(-45px) scale(0.8) translateY(10px);
   }
-  
+
   #modernScrollTopBtn.show {
     transform: translateY(-110px) scale(1) translateY(0);
   }
-  
+
   #modernScrollBottomBtn.show {
     transform: translateY(-45px) scale(1) translateY(0);
   }
-  
+
   #modernScrollTopBtn:hover {
     transform: translateY(-110px) scale(1.1);
   }
-  
+
   #modernScrollBottomBtn:hover {
     transform: translateY(-45px) scale(1.1);
   }
-  
+
   .scroll-button-tooltip {
     display: none;
   }
@@ -189,7 +196,8 @@
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-  #modernScrollTopBtn, #modernScrollBottomBtn {
+  #modernScrollTopBtn,
+  #modernScrollBottomBtn {
     background: linear-gradient(135deg, #8a2be2 0%, #4a00e0 100%);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
@@ -221,7 +229,7 @@
   #modernScrollBottomBtn.auto-scrolling {
     animation: pulse-mobile 1.5s infinite;
   }
-  
+
   @keyframes pulse-mobile {
     0% {
       box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
